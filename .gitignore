@@ -1,0 +1,6 @@
+node_modules/
+dist/
+blender_pipeline/.venv/
+blender_pipeline/*.glb
+blender_pipeline/*.png
+*.log
