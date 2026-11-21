@@ -7,6 +7,10 @@ import { buildHoodedMarsLamp, buildIndustrialHvacUnit, buildIndustrialCryoSilo, 
 import { enhancePressurizedGlassMaterial } from '../vfx/cinematic_shaders.js';
 
 let _colonistGlbPromise = null;
+let _colonistGlbLoaded = false;
+export function isColonistLoaded() {
+  return _colonistGlbLoaded;
+}
 function getColonistGlbParts() {
   if (!_colonistGlbPromise) {
     _colonistGlbPromise = (async () => {
@@ -41,6 +45,7 @@ function getColonistGlbParts() {
         }
         parts[child.name] = child;
       });
+      _colonistGlbLoaded = true;
       return parts;
     })();
   }

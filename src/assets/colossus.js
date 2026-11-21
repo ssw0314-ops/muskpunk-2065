@@ -544,5 +544,10 @@ export function createElonColossus(textures) {
   root.add(faceLight);
   uplights.push(faceLight);
 
-  return { group: root, uplights, isLoaded: () => glbLoaded && headTexCount >= 3 };
+  return {
+    group: root,
+    uplights,
+    isLoaded: () => glbLoaded && headTexCount >= 3,
+    getProgress: () => (glbLoaded ? 0.5 : 0) + (Math.min(3, headTexCount) / 3) * 0.5
+  };
 }

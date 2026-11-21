@@ -7,6 +7,10 @@ import { buildHoodedMarsLamp, buildIndustrialCryoSilo, buildCryoSphereTank } fro
 import { enhanceSteelMonumentMaterial } from '../vfx/cinematic_shaders.js';
 
 let _starshipGlbPromise = null;
+let _starshipGlbLoaded = false;
+export function isStarshipLoaded() {
+  return _starshipGlbLoaded;
+}
 function getStarshipGlbTemplate() {
   if (!_starshipGlbPromise) {
     _starshipGlbPromise = (async () => {
@@ -16,9 +20,11 @@ function getStarshipGlbTemplate() {
       const ds = new DecompressionStream('gzip');
       const buf = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer();
       const loader = new GLTFLoader();
-      return await new Promise((resolve, reject) => {
+      const scene = await new Promise((resolve, reject) => {
         loader.parse(buf, '', (gltf) => resolve(gltf.scene), reject);
       });
+      _starshipGlbLoaded = true;
+      return scene;
     })();
   }
   return _starshipGlbPromise;

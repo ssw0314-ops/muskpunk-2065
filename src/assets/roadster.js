@@ -10,6 +10,10 @@ import { buildHoodedMarsLamp, buildIndustrialCryoSilo } from './industrial_props
  * for instant zero-overhead cloning across the Player Roadster, Apron, Sky-Pad & Sky-Traffic!
  */
 let _roadsterGlbPromise = null;
+let _roadsterGlbLoaded = false;
+export function isRoadsterLoaded() {
+  return _roadsterGlbLoaded;
+}
 function getRoadsterGlbTemplate() {
   if (!_roadsterGlbPromise) {
     _roadsterGlbPromise = (async () => {
@@ -19,9 +23,11 @@ function getRoadsterGlbTemplate() {
       const ds = new DecompressionStream('gzip');
       const buf = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer();
       const loader = new GLTFLoader();
-      return await new Promise((resolve, reject) => {
+      const scene = await new Promise((resolve, reject) => {
         loader.parse(buf, '', (gltf) => resolve(gltf.scene), reject);
       });
+      _roadsterGlbLoaded = true;
+      return scene;
     })();
   }
   return _roadsterGlbPromise;

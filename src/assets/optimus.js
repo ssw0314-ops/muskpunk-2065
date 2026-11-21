@@ -42,6 +42,10 @@ async function decodeBlenderGlb(b64, softAoMin = 0.58) {
 }
 
 let _optimusGlbPromise = null;
+let _optimusGlbLoaded = false;
+export function isOptimusLoaded() {
+  return _optimusGlbLoaded;
+}
 function getOptimusGlbParts() {
   if (!_optimusGlbPromise) {
     _optimusGlbPromise = decodeBlenderGlb(OPTIMUS_GLB_GZIP_B64, 0.62).then((scene) => {
@@ -49,6 +53,7 @@ function getOptimusGlbParts() {
       scene.traverse((ch) => {
         if (ch.isMesh) parts[ch.name] = ch;
       });
+      _optimusGlbLoaded = true;
       return parts;
     });
   }
@@ -56,9 +61,16 @@ function getOptimusGlbParts() {
 }
 
 let _roverGlbPromise = null;
+let _roverGlbLoaded = false;
+export function isCyberRoverLoaded() {
+  return _roverGlbLoaded;
+}
 function getCyberRoverGlbTemplate() {
   if (!_roverGlbPromise) {
-    _roverGlbPromise = decodeBlenderGlb(CYBER_ROVER_GLB_GZIP_B64, 0.60);
+    _roverGlbPromise = decodeBlenderGlb(CYBER_ROVER_GLB_GZIP_B64, 0.60).then((scene) => {
+      _roverGlbLoaded = true;
+      return scene;
+    });
   }
   return _roverGlbPromise;
 }

@@ -8,10 +8,10 @@ import { createTextures } from './textures.js';
 import { createMarsTerrain, getTerrainHeight } from './terrain.js';
 import { createMarsSky } from './sky.js';
 import { createElonColossus } from './assets/colossus.js';
-import { createArcadiaColony, HERO_BIODOME } from './assets/domes.js';
-import { createMegaport } from './assets/starship.js';
-import { createRoadsterSystems } from './assets/roadster.js';
-import { createOptimusWorkforce } from './assets/optimus.js';
+import { createArcadiaColony, HERO_BIODOME, isColonistLoaded } from './assets/domes.js';
+import { createMegaport, isStarshipLoaded } from './assets/starship.js';
+import { createRoadsterSystems, isRoadsterLoaded } from './assets/roadster.js';
+import { createOptimusWorkforce, isOptimusLoaded, isCyberRoverLoaded } from './assets/optimus.js';
 import { createOpenWorldExpansion } from './assets/world_expansion.js';
 import { createPlayerRoadster } from './player_roadster.js';
 import { createGtaMinimap, getCurrentDistrict } from './minimap.js';
@@ -547,9 +547,40 @@ function triggerFootJump() {
 // =========================================================================
 const introOverlay = document.getElementById('intro-overlay');
 const btnStart = document.getElementById('btn-start');
+const bootLoader = document.getElementById('boot-loader');
+const bootBarFill = document.getElementById('boot-bar-fill');
+const bootPctEl = document.getElementById('boot-pct');
+const bootStatusEl = document.getElementById('boot-status');
+let bootReady = false;
+let bootProgressDisplay = 0.08;
+let warmRenderFrames = 0;
+
+function getRawAssetLoadProgress() {
+  const cProg = colossus.getProgress ? colossus.getProgress() : (colossus.isLoaded() ? 1 : 0);
+  const sProg = isStarshipLoaded() ? 1 : 0;
+  const rProg = isRoadsterLoaded() ? 1 : 0;
+  const oProg = isOptimusLoaded() ? 1 : 0;
+  const vProg = isCyberRoverLoaded() ? 1 : 0;
+  const hProg = isColonistLoaded() ? 1 : 0;
+  return cProg * 0.42 + sProg * 0.20 + rProg * 0.18 + oProg * 0.08 + vProg * 0.06 + hProg * 0.06;
+}
+
+function areAllModelsLoaded() {
+  return (
+    colossus.isLoaded() &&
+    isStarshipLoaded() &&
+    isRoadsterLoaded() &&
+    isOptimusLoaded() &&
+    isCyberRoverLoaded() &&
+    isColonistLoaded()
+  );
+}
 
 function enterExperience() {
   experienceStarted = true;
+  bootReady = true;
+  if (bootLoader) bootLoader.classList.add('done');
+  introOverlay.classList.remove('ready');
   introOverlay.classList.add('hidden');
   document.getElementById('hud-root').classList.remove('hud-hidden');
   playerCar.teleportCar(DISTRICTS[0].x, DISTRICTS[0].z, DISTRICTS[0].heading, 0);
@@ -563,6 +594,7 @@ function enterExperience() {
 btnStart.addEventListener('click', () => enterExperience());
 
 canvas.addEventListener('mousedown', (e) => {
+  if (!bootReady) return;
   if (!experienceStarted) {
     enterExperience();
     return;
@@ -1205,6 +1237,32 @@ function animate() {
   if (mobSpeedEl) mobSpeedEl.textContent = `${cs.speedKmh} km/h · ${Math.round(cs.altAGL)}m`;
 
   composer.render();
+
+  if (!bootReady) {
+    const rawProg = getRawAssetLoadProgress();
+    const allLoaded = areAllModelsLoaded();
+    if (allLoaded) warmRenderFrames += 1;
+    const targetProg = allLoaded && warmRenderFrames >= 3 ? 1.0 : Math.min(0.96, 0.08 + rawProg * 0.88);
+    bootProgressDisplay = Math.max(
+      bootProgressDisplay,
+      THREE.MathUtils.lerp(bootProgressDisplay, targetProg, Math.min(1, dt * 11))
+    );
+    const pct = allLoaded && warmRenderFrames >= 3 ? 100 : Math.min(99, Math.round(bootProgressDisplay * 100));
+    if (bootBarFill) bootBarFill.style.width = `${pct}%`;
+    if (bootPctEl) bootPctEl.textContent = `${pct}%`;
+    if (bootStatusEl) {
+      bootStatusEl.textContent = pct < 45
+        ? 'DECOMPRESSING 3D COLONY ASSETS...'
+        : pct < 90
+          ? 'ASSEMBLING 212M COLOSSUS & MEGAPORT...'
+          : 'SYNCHRONIZING O₂ METERING...';
+    }
+    if (pct >= 100) {
+      bootReady = true;
+      if (bootLoader) bootLoader.classList.add('done');
+      if (!experienceStarted && introOverlay) introOverlay.classList.add('ready');
+    }
+  }
 }
 
 animate();

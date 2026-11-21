@@ -39,14 +39,58 @@ const html = `<!DOCTYPE html>
     }
     #eva-visor.active { opacity: 1; }
 
-    /* Cinematic Dystopian Title Intro Overlay */
+    /* Boot Splash Loader (Logo Only + Progress Bar until all 3D models & shaders are ready) */
+    #boot-loader {
+      position: fixed; inset: 0; z-index: 60;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 24px;
+      background: radial-gradient(circle at 50% 42%, #1d110d 0%, #0d0806 62%, #070403 100%);
+      transition: opacity 0.65s cubic-bezier(.22, 1, .36, 1), visibility 0.65s ease;
+    }
+    #boot-loader.done {
+      opacity: 0; visibility: hidden; pointer-events: none;
+    }
+    #boot-logo {
+      width: clamp(270px, 44vw, 560px); height: auto;
+      pointer-events: none; user-select: none;
+      filter: drop-shadow(0 10px 34px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 24px rgba(255, 226, 40, 0.22));
+      animation: bootLogoPulse 3.2s ease-in-out infinite;
+    }
+    @keyframes bootLogoPulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 10px 34px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 18px rgba(255, 226, 40, 0.18)); }
+      50% { transform: scale(1.015); filter: drop-shadow(0 10px 34px rgba(0, 0, 0, 0.78)) drop-shadow(0 0 32px rgba(255, 226, 40, 0.34)); }
+    }
+    .boot-bar-wrap {
+      width: clamp(220px, 30vw, 380px);
+      margin-top: 26px;
+    }
+    .boot-bar-track {
+      width: 100%; height: 6px;
+      background: rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(99, 242, 255, 0.28);
+      border-radius: 999px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.65);
+    }
+    #boot-bar-fill {
+      width: 6%; height: 100%;
+      background: linear-gradient(90deg, #f3e600 0%, #e5a93c 55%, #63f2ff 100%);
+      border-radius: 999px;
+      box-shadow: 0 0 16px rgba(99, 242, 255, 0.55);
+      transition: width 0.16s ease-out;
+    }
+
+    /* Cinematic Dystopian Title Intro Overlay (All English text unified to button font!) */
     #intro-overlay {
       position: fixed; inset: 0; z-index: 40;
       display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start;
       padding: max(28px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) max(42px, env(safe-area-inset-bottom)) max(36px, env(safe-area-inset-left));
       background: linear-gradient(180deg, rgba(14,9,7,0.10) 0%, rgba(14,9,7,0.0) 52%, rgba(10,6,5,0.82) 100%);
-      transition: opacity 0.55s ease, visibility 0.55s ease;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.65s ease, visibility 0.65s ease;
     }
+    #intro-overlay.ready { opacity: 1; visibility: visible; pointer-events: auto; }
     #intro-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
     #intro-logo {
       position: absolute;
@@ -54,7 +98,7 @@ const html = `<!DOCTYPE html>
       width: clamp(260px, 34vw, 520px); height: auto;
       pointer-events: none; user-select: none;
       filter: drop-shadow(0 6px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 18px rgba(255, 226, 40, 0.18));
-      animation: introLogoIn 1.6s cubic-bezier(.2,.8,.2,1) both, introLogoGlow 4.8s ease-in-out 1.6s infinite;
+      animation: introLogoIn 1.2s cubic-bezier(.2,.8,.2,1) both, introLogoGlow 4.8s ease-in-out 1.2s infinite;
     }
     @keyframes introLogoIn {
       from { opacity: 0; transform: translateY(-14px) scale(0.94); }
@@ -65,16 +109,18 @@ const html = `<!DOCTYPE html>
       50% { filter: drop-shadow(0 6px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 26px rgba(255, 226, 40, 0.30)); }
     }
     .intro-dystopia {
-      max-width: 680px;
+      max-width: 760px;
       border-left: 2px solid rgba(72, 238, 255, 0.72);
       padding-left: 18px;
       margin-bottom: 22px;
     }
     .intro-quote {
-      font-size: clamp(22px, 3.4vw, 40px);
-      font-weight: 800;
-      letter-spacing: -0.01em;
-      line-height: 1.14;
+      font-family: inherit;
+      font-size: clamp(20px, 3.1vw, 36px);
+      font-weight: 900;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      line-height: 1.18;
       color: #fbf5ec;
       text-shadow: 0 4px 28px rgba(0, 0, 0, 0.85);
     }
@@ -83,19 +129,20 @@ const html = `<!DOCTYPE html>
       text-shadow: 0 0 22px rgba(99, 242, 255, 0.38), 0 4px 24px rgba(0, 0, 0, 0.85);
     }
     .intro-terms {
-      margin-top: 9px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: clamp(12px, 1.5vw, 15px);
-      font-weight: 600;
-      letter-spacing: 0.20em;
+      margin-top: 10px;
+      font-family: inherit;
+      font-size: clamp(12px, 1.45vw, 14.5px);
+      font-weight: 900;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: rgba(238, 186, 112, 0.92);
+      color: rgba(238, 186, 112, 0.94);
       text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
     }
     .intro-actions {
       display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
     }
     #btn-start {
+      font-family: inherit;
       background: linear-gradient(135deg, #f3e600 0%, #e5a93c 100%);
       color: #120c09; border: none; border-radius: 6px;
       padding: 13px 28px; font-size: 13.5px; font-weight: 900; letter-spacing: 0.12em;
@@ -110,9 +157,9 @@ const html = `<!DOCTYPE html>
       box-shadow: 0 10px 32px rgba(243, 230, 0, 0.42);
     }
     .intro-fineprint {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-      color: rgba(214, 202, 188, 0.62);
+      font-family: inherit;
+      font-size: 11.5px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(214, 202, 188, 0.72);
     }
     @media (orientation: portrait), (max-width: 760px) {
       #intro-overlay {
@@ -410,6 +457,15 @@ const html = `<!DOCTYPE html>
     <div id="toast-title">파운더스 리지 전망대</div>
   </div>
 
+  <div id="boot-loader">
+    <img id="boot-logo" src="${LOGO_URI}" alt="MUSKPUNK 2065" draggable="false" />
+    <div class="boot-bar-wrap">
+      <div class="boot-bar-track">
+        <div id="boot-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="intro-overlay">
     <img id="intro-logo" src="${LOGO_URI}" alt="MUSKPUNK 2065" draggable="false" />
     <div class="intro-dystopia">
@@ -418,7 +474,7 @@ const html = `<!DOCTYPE html>
     </div>
     <div class="intro-actions">
       <button id="btn-start">Accept Terms &amp; Breathe</button>
-      <span class="intro-fineprint">O₂ Metering Active · Arcadia Colony Corp.</span>
+      <span class="intro-fineprint">O₂ Metering Active · MUSK COLONY CORP.</span>
     </div>
   </div>
 
